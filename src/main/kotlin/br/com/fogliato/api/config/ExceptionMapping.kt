@@ -16,12 +16,12 @@ object ErrorExceptionMapping {
             val error = ErrorResponse(mapOf("Unknow Error" to listOf(e.message ?: "Error occurred!")))
             ctx.json(error).status(HttpStatus.INTERNAL_SERVER_ERROR_500)
         }
-        app.exception(BadRequestResponse::class.java) { _, ctx ->
-            LOG.warn("BadRequestResponse occurred for req -> ${ctx.url()}")
-            LOG.warn(ctx.body())
-            val error = ErrorResponse(mapOf("body" to listOf("can't be empty or invalid")))
-            ctx.json(error).status(HttpStatus.UNPROCESSABLE_ENTITY_422)
-        }
+//        app.exception(BadRequestResponse::class.java) { _, ctx ->
+//            LOG.warn("BadRequestResponse occurred for req -> ${ctx.url()}")
+//            LOG.warn(ctx.body())
+//            val error = ErrorResponse(mapOf("body" to listOf("can't be empty or invalid")))
+//            ctx.json(error).status(HttpStatus.UNPROCESSABLE_ENTITY_422)
+//        }
         app.exception(UnauthorizedResponse::class.java) { _, ctx ->
             LOG.warn("UnauthorizedResponse occurred for req -> ${ctx.url()}")
             val error = ErrorResponse(mapOf("login" to listOf("User not authenticated!")))

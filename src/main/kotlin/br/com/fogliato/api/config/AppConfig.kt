@@ -14,7 +14,7 @@ import org.koin.standalone.inject
 import java.text.SimpleDateFormat
 
 class AppConfig() : KoinComponent {
-    private val authConfig: AuthConfig by inject()
+//    private val authConfig: AuthConfig by inject()
     private val router: Router by inject()
 
     fun setup(): Javalin {
@@ -29,7 +29,7 @@ class AppConfig() : KoinComponent {
             app.config.contextPath = getKoin().getProperty("context", "api")
 
             this.configureJackson()
-            authConfig.configure(app)
+//            authConfig.configure(app)
             router.register(app)
             ErrorExceptionMapping.register(app)
 

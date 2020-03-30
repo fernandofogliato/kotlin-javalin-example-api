@@ -7,9 +7,9 @@ import io.javalin.http.NotFoundResponse
 
 class TaskService(private val taskRepository: TaskRepository) {
 
-    fun create(task: Task) {
+    fun create(task: Task): Task? {
         try {
-            taskRepository.create(task)
+            return taskRepository.create(task)
         } catch (e: Exception) {
             throw InternalServerErrorResponse("Error to create a task.")
         }

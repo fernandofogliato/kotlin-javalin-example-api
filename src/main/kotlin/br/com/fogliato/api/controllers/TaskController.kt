@@ -27,11 +27,14 @@ class TaskController(private val taskService: TaskService) {
 
     fun create(ctx: Context) {
         ctx.bodyValidator<TaskDTO>()
-                .check({ it.task?.id != null }, "the id must be null")
+                .check({ it.task?.id == null }, "the id must be null")
                 .check({ !it.task?.title.isNullOrBlank() }, "title is required")
                 .get().task?.also { task ->
+                    print(task)
                     taskService.create(task).apply {
+                        print(this)
                         ctx.status(HttpStatus.CREATED_201)
+                        ctx.json(TaskDTO(this))
                     }
                 }
     }
@@ -43,10 +46,10 @@ class TaskController(private val taskService: TaskService) {
             .check({ !it.task?.title.isNullOrBlank() })
             .check({ !it.task?.description.isNullOrBlank() })
             .get().task?.also { task ->
-            taskService.update(id, task).apply {
-                ctx.json(TaskDTO(this))
+                taskService.update(id, task).apply {
+                    ctx.status(HttpStatus.NO_CONTENT_204)
+                }
             }
-        }
     }
 
     fun delete(ctx: Context) {

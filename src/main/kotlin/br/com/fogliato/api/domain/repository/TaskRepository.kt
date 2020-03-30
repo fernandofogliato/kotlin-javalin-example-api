@@ -45,16 +45,18 @@ class TaskRepository(private val dataSource: DataSource) {
         }
     }
 
-    fun create(task: Task) {
-        transaction {
+    fun create(task: Task): Task? {
+        val id = transaction {
             Tasks.insert {
                 it[title] = task.title
                 it[type] = task.type
                 it[area] = task.area
                 it[status] = task.status
                 it[createdAt] = LocalDateTime.now()
-            }
+            } get Tasks.id
         }
+        print("id gerado ${id}")
+        return findById(id);
     }
 
     fun findById(id: Long): Task? {
