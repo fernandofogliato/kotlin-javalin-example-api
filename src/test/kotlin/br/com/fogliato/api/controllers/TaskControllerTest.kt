@@ -45,6 +45,29 @@ class TaskControllerTest {
     }
 
     @Test
+    fun `get all tasks by area`() {
+        this.createTask()
+        val http = HttpUtil(app.port())
+        val response = http.get<TasksDTO>("/api/tasks", mapOf(Area.FINANCE_MGT.name to "area"))
+
+        assertEquals(response.status, HttpStatus.OK_200)
+        assertNotNull(response.body.tasks)
+        assertEquals(response.body.tasks.size, response.body.count)
+    }
+
+    @Test
+    fun `get all tasks by area and status`() {
+        this.createTask()
+        val http = HttpUtil(app.port())
+        val params = mapOf(Area.FINANCE_MGT.name to "area", Status.TODO.name to "status")
+        val response = http.get<TasksDTO>("/api/tasks", params)
+
+        assertEquals(response.status, HttpStatus.OK_200)
+        assertNotNull(response.body.tasks)
+        assertEquals(response.body.tasks.size, response.body.count)
+    }
+
+    @Test
     fun `create task`() {
         val task = Task(title = "Teste123", status = Status.DOING, area = Area.HR_OPS, type = Type.CHANGE)
         val response = http.post<TaskDTO>("/api/tasks", TaskDTO(task))

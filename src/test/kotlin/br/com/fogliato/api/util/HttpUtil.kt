@@ -6,11 +6,8 @@
 
 package io.javalin.util
 
-import br.com.fogliato.api.domain.model.task.Task
-import br.com.fogliato.api.domain.model.task.TaskDTO
 import br.com.fogliato.api.domain.model.user.User
 import br.com.fogliato.api.domain.model.user.UserDTO
-import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.ObjectMapper
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header

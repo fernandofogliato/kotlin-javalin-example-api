@@ -6,6 +6,7 @@ import br.com.fogliato.api.domain.model.task.Task
 import br.com.fogliato.api.domain.model.task.Type
 
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -94,5 +95,22 @@ class TaskRepository(private val dataSource: DataSource) {
         transaction(Database.connect(dataSource)) {
             Tasks.deleteWhere { Tasks.id eq id }
         }
+    }
+
+    private fun findWithConditional(where: Op<Boolean>, limit: Int, offset: Long): List<Task> {
+        return transaction(Database.connect(dataSource)) {
+            Tasks.select(where)
+                .limit(limit, offset)
+                .orderBy(Tasks.createdAt, SortOrder.DESC)
+                .map { row -> Tasks.toDomain(row) }
+        }
+    }
+
+    fun findAllByArea(limit: Int, offset: Long, area: Area): List<Task> {
+        return findWithConditional((Tasks.area eq area), limit, offset);
+    }
+
+    fun findAllByAreaAndStatus(limit: Int, offset: Long, area: Area, status: Status): List<Task> {
+        return findWithConditional((Tasks.area eq area) and (Tasks.status eq status), limit, offset);
     }
 }
