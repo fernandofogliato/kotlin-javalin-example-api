@@ -4,6 +4,7 @@ import br.com.fogliato.api.domain.model.task.Area
 import br.com.fogliato.api.domain.model.task.Status
 import br.com.fogliato.api.domain.model.task.Task
 import br.com.fogliato.api.domain.repository.TaskRepository
+import io.javalin.http.BadRequestResponse
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.http.NotFoundResponse
 
@@ -22,7 +23,10 @@ class TaskService(private val taskRepository: TaskRepository) {
     }
 
     fun update(id: Long, task: Task): Task? {
-        return findById(id).run {
+        return findById(id)?.run {
+            if (this.status == Status.CANCELLED) {
+                throw BadRequestResponse("Task with status 'CANCELLED' cannot be update")
+            }
             taskRepository.update(id, task)
         }
     }
