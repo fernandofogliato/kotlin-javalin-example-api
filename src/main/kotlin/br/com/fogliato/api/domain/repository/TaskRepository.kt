@@ -4,6 +4,7 @@ import br.com.fogliato.api.domain.model.task.Area
 import br.com.fogliato.api.domain.model.task.Status
 import br.com.fogliato.api.domain.model.task.Task
 import br.com.fogliato.api.domain.model.task.Type
+import org.h2.engine.User
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -19,7 +20,9 @@ private object Tasks: Table() {
     val type: Column<Type> = enumerationByName ("type", 50, Type::class)
     val area: Column<Area> = enumerationByName ("area", 50, Area::class)
     val status: Column<Status> = enumerationByName ("status", 50, Status::class)
+    val assignee: Column<Long?> = reference("assignee_id", Users.id).nullable()
     val createdAt: Column<LocalDateTime> = datetime("created_at")
+    val createdBy: Column<Long?> = reference("created_by", Users.id).nullable()
     val updatedAt: Column<LocalDateTime?> = datetime("updated_at").nullable()
 
     override val primaryKey = PrimaryKey(id)
@@ -56,7 +59,6 @@ class TaskRepository(private val dataSource: DataSource) {
                 it[createdAt] = LocalDateTime.now()
             } get Tasks.id
         }
-        print("id gerado ${id}")
         return findById(id);
     }
 
