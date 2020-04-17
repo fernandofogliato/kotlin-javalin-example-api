@@ -3,7 +3,9 @@ package br.com.fogliato.api.config
 import br.com.fogliato.api.Router
 import br.com.fogliato.api.controllers.TaskController
 import br.com.fogliato.api.domain.repository.TaskRepository
+import br.com.fogliato.api.domain.repository.UserRepository
 import br.com.fogliato.api.domain.service.TaskService
+import br.com.fogliato.api.domain.service.UserService
 import br.com.fogliato.api.utils.JwtProvider
 import org.koin.dsl.module.module
 
@@ -22,5 +24,11 @@ object ModulesConfig {
         single { TaskRepository(get()) }
     }
 
-    internal val allModules = listOf(configModule, taskModule)
+    private val userModule = module {
+//        single { UserController(get()) }
+        single { UserService(get()) }
+        single { UserRepository(get()) }
+    }
+
+    internal val allModules = listOf(configModule, userModule, taskModule)
 }

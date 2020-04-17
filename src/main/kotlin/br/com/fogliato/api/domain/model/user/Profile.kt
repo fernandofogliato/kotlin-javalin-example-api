@@ -1,6 +1,6 @@
 package br.com.fogliato.api.domain.model.user;
 
-public enum Profile {
+enum class Profile {
     OPS,
     MGT,
     DIR,

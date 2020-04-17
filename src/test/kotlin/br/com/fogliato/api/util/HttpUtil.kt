@@ -6,6 +6,8 @@
 
 package io.javalin.util
 
+import br.com.fogliato.api.domain.model.task.Area
+import br.com.fogliato.api.domain.model.user.Profile
 import br.com.fogliato.api.domain.model.user.User
 import br.com.fogliato.api.domain.model.user.UserDTO
 import com.mashape.unirest.http.ObjectMapper
@@ -48,13 +50,15 @@ class HttpUtil(port: Int) {
             Unirest.delete(origin + path).headers(headers).asString()
 
     fun loginAndSetTokenHeader(email: String, password: String) {
-        val userDTO = UserDTO(User(email = email, password = password))
+        val userDTO = UserDTO(User(name = "Teste", email = email, password = password, profile = Profile.OPS,
+                active = true, group = Area.FINANCE_MGT))
         val response = post<UserDTO>("/api/users/login", userDTO)
         headers["Authorization"] = "Token ${response.body.user?.token}"
     }
 
     fun registerUser(email: String, password: String): UserDTO {
-        val userDTO = UserDTO(User(email = email, password = password))
+        val userDTO = UserDTO(User(name = "Teste", email = email, password = password, profile = Profile.OPS,
+                active = true, group = Area.FINANCE_MGT))
         val response = post<UserDTO>("/api/users", userDTO)
         return response.body
     }

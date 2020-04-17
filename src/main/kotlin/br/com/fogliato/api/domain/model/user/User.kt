@@ -10,5 +10,5 @@ data class User(val id: Long? = null,
                 val password: String,
                 val profile: Profile,
                 val group: Area,
-                var active: Boolean = false,
+                val active: Boolean = false,
                 val token: String? = null)

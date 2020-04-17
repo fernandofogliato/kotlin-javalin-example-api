@@ -4,7 +4,7 @@ import br.com.fogliato.api.domain.model.task.Area
 import br.com.fogliato.api.domain.model.task.Status
 import br.com.fogliato.api.domain.model.task.Task
 import br.com.fogliato.api.domain.model.task.Type
-import org.h2.engine.User
+import br.com.fogliato.api.domain.model.user.User
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -35,6 +35,8 @@ private object Tasks: Table() {
                 type = row[type],
                 area = row[area],
                 status = row[status],
+                //assignee = row[assignee],
+                //createdBy =  row[createdBy],
                 createdAt = row[createdAt],
                 updatedAt = row[updatedAt]
         )
@@ -56,6 +58,8 @@ class TaskRepository(private val dataSource: DataSource) {
                 it[type] = task.type
                 it[area] = task.area
                 it[status] = task.status
+                it[assignee] = task.assignee?.id
+                it[createdBy] = task.createdBy?.id
                 it[createdAt] = LocalDateTime.now()
             } get Tasks.id
         }
@@ -71,7 +75,8 @@ class TaskRepository(private val dataSource: DataSource) {
 
     fun findAll(limit: Int, offset: Long): List<Task> {
         return transaction(Database.connect(dataSource)) {
-            Tasks.selectAll()
+            (Tasks innerJoin Users)
+                    .selectAll()
                     .limit(limit, offset)
                     .orderBy(Tasks.createdAt, SortOrder.DESC)
                     .map { row -> Tasks.toDomain(row) }
@@ -101,7 +106,8 @@ class TaskRepository(private val dataSource: DataSource) {
 
     private fun findWithConditional(where: Op<Boolean>, limit: Int, offset: Long): List<Task> {
         return transaction(Database.connect(dataSource)) {
-            Tasks.select(where)
+            (Tasks innerJoin Users)
+                .select(where)
                 .limit(limit, offset)
                 .orderBy(Tasks.createdAt, SortOrder.DESC)
                 .map { row -> Tasks.toDomain(row) }

@@ -4,13 +4,14 @@ import br.com.fogliato.api.domain.model.task.Area
 import br.com.fogliato.api.domain.model.user.Profile
 import br.com.fogliato.api.domain.model.user.User
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import javax.sql.DataSource
 
 internal object Users: Table() {
     val id: Column<Long> = long("id").autoIncrement()
     val name: Column<String> = varchar("name", 150)
-    val email: Column<String> = varchar("name", 150).uniqueIndex()
+    val email: Column<String> = varchar("email", 150).uniqueIndex()
     val password: Column<String> = varchar("password", 50)
     val profile: Column<Profile> = enumerationByName ("profile", 50, Profile::class)
     val group: Column<Area> = enumerationByName ("group", 50, Area::class)
@@ -95,5 +96,9 @@ class UserRepository(private val dataSource: DataSource) {
                 .limit(limit, offset)
                 .map { row -> Users.toDomain(row) }
         }
+    }
+
+    fun findAllByActive(limit: Int, offset: Long, active: Boolean): List<User> {
+        return findWithConditional((Users.active eq active), limit, offset);
     }
 }
