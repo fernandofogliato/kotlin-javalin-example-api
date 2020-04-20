@@ -2,6 +2,7 @@ package br.com.fogliato.api.config
 
 import br.com.fogliato.api.Router
 import br.com.fogliato.api.config.ModulesConfig.allModules
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.Javalin
@@ -29,7 +30,7 @@ class AppConfig() : KoinComponent {
             app.config.contextPath = getKoin().getProperty("context", "api")
 
             this.configureJackson()
-//            authConfig.configure(app)
+            authConfig.configure(app)
             router.register(app)
             ErrorExceptionMapping.register(app)
 
@@ -45,6 +46,7 @@ class AppConfig() : KoinComponent {
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .setDateFormat(dateFormat)
                 .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, true)
+                    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
         )
     }
 }

@@ -26,7 +26,6 @@ class TaskController(private val taskService: TaskService) {
                 .check({ it.task?.id == null }, "the id must be null")
                 .check({ !it.task?.title.isNullOrBlank() }, "title is required")
                 .get().task?.also { task ->
-                    print(task)
                     taskService.create(task).apply {
                         print(this)
                         ctx.status(HttpStatus.CREATED_201)

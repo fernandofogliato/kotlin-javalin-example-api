@@ -2,6 +2,7 @@ package br.com.fogliato.api.config
 
 import br.com.fogliato.api.Router
 import br.com.fogliato.api.controllers.TaskController
+import br.com.fogliato.api.controllers.UserController
 import br.com.fogliato.api.domain.repository.TaskRepository
 import br.com.fogliato.api.domain.repository.UserRepository
 import br.com.fogliato.api.domain.service.TaskService
@@ -15,7 +16,7 @@ object ModulesConfig {
         single { JwtProvider() }
         single { AuthConfig(get()) }
         single { DbConfig(getProperty("jdbc.url"), getProperty("db.username"), getProperty("db.password")).getDataSource() }
-        single { Router(get()) }
+        single { Router(get(), get()) }
     }
 
     private val taskModule = module {
@@ -25,8 +26,8 @@ object ModulesConfig {
     }
 
     private val userModule = module {
-//        single { UserController(get()) }
-        single { UserService(get()) }
+        single { UserController(get()) }
+        single { UserService(get(), get()) }
         single { UserRepository(get()) }
     }
 

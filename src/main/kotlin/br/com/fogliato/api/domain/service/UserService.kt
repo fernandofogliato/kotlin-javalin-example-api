@@ -1,15 +1,23 @@
 package br.com.fogliato.api.domain.service
 
+import br.com.fogliato.api.config.Roles
+import br.com.fogliato.api.domain.model.task.Area
 import br.com.fogliato.api.domain.model.user.User
 import br.com.fogliato.api.domain.repository.UserRepository
-import io.javalin.http.InternalServerErrorResponse
-import io.javalin.http.NotFoundResponse
+import br.com.fogliato.api.utils.JwtProvider
+import io.javalin.http.*
+import org.eclipse.jetty.http.HttpStatus
 
-class UserService(private val userRepository: UserRepository) {
+class UserService(private val userRepository: UserRepository,
+                  private val jwtProvider: JwtProvider) {
 
     fun create(user: User): User? {
+        userRepository.findByEmail(user.email)?.apply {
+            throw BadRequestResponse("User with ${user.email} already registred")
+        }
+
         try {
-            return userRepository.create(user)
+            return userRepository.create(user)?.copy(token = generateJwtToken(user))
         } catch (e: Exception) {
             throw InternalServerErrorResponse("Error to create a user.")
         }
@@ -25,14 +33,31 @@ class UserService(private val userRepository: UserRepository) {
         }
     }
 
-    fun delete(id: Long) {
-        return userRepository.delete(id)
-    }
-
-    fun findAll(limit: Int, offset: Long, active: Boolean?): List<User> {
+    fun findAll(limit: Int, offset: Long, area: Area?): List<User> {
         return when {
-            active != null && active -> userRepository.findAllByActive(limit, offset, active)
+            area != null -> userRepository.findAllByArea(limit, offset, area)
             else -> return userRepository.findAll(limit, offset)
         }
+    }
+
+    fun findAllByActive(limit: Int, offset: Long, active: Boolean): List<User> {
+        return userRepository.findAllByActive(limit, offset, active)
+    }
+
+    fun authenticate(user: User): User {
+        val userFound = userRepository.findByEmail(user.email)
+
+        if (userFound?.password == user.password) {
+            return userFound.copy(token = generateJwtToken(user))
+        }
+        throw UnauthorizedResponse("email or password is invalid!")
+    }
+
+    private fun generateJwtToken(user: User): String? {
+        return jwtProvider.createJWT(user, Roles.AUTHENTICATED)
+    }
+
+    fun findByEmail(email: String): User? {
+        return userRepository.findByEmail(email);
     }
 }

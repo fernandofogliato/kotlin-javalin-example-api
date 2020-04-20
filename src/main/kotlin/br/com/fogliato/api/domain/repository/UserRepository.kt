@@ -84,12 +84,6 @@ class UserRepository(private val dataSource: DataSource) {
         }
     }
 
-    fun delete(id: Long) {
-        transaction(Database.connect(dataSource)) {
-            Users.deleteWhere { Users.id eq id }
-        }
-    }
-
     private fun findWithConditional(where: Op<Boolean>, limit: Int, offset: Long): List<User> {
         return transaction(Database.connect(dataSource)) {
             Users.select(where)
@@ -100,5 +94,13 @@ class UserRepository(private val dataSource: DataSource) {
 
     fun findAllByActive(limit: Int, offset: Long, active: Boolean): List<User> {
         return findWithConditional((Users.active eq active), limit, offset);
+    }
+
+    fun findAllByArea(limit: Int, offset: Long, area: Area): List<User> {
+        return findWithConditional((Users.group eq area), limit, offset);
+    }
+
+    fun findByEmail(email: String): User? {
+        return findWithConditional((Users.email eq email), 1, 0).firstOrNull();
     }
 }

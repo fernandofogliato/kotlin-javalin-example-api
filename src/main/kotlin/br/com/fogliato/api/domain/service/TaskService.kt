@@ -3,16 +3,21 @@ package br.com.fogliato.api.domain.service
 import br.com.fogliato.api.domain.model.task.Area
 import br.com.fogliato.api.domain.model.task.Status
 import br.com.fogliato.api.domain.model.task.Task
+import br.com.fogliato.api.domain.model.user.User
 import br.com.fogliato.api.domain.repository.TaskRepository
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.http.NotFoundResponse
 
-class TaskService(private val taskRepository: TaskRepository) {
+class TaskService(private val taskRepository: TaskRepository,
+                  private val userService: UserService) {
 
-    fun create(task: Task): Task? {
+    fun create(userEmail: String, task: Task): Task? {
         try {
-            return taskRepository.create(task)
+            val user = userService.findByEmail(userEmail) ?: throw BadRequestResponse("Invalid user!")
+
+            task.assignee?.id?.let { userService.findById(it) } ?: throw BadRequestResponse("Invalid assignee!")
+            return taskRepository.create(task.copy(createdBy = user))
         } catch (e: Exception) {
             throw InternalServerErrorResponse("Error to create a task.")
         }
@@ -27,6 +32,7 @@ class TaskService(private val taskRepository: TaskRepository) {
             if (this.status == Status.CANCELLED) {
                 throw BadRequestResponse("Task with status 'CANCELLED' cannot be update")
             }
+            task.assignee?.id?.let { userService.findById(it) } ?: throw BadRequestResponse("Invalid assignee!")
             taskRepository.update(id, task)
         }
     }
