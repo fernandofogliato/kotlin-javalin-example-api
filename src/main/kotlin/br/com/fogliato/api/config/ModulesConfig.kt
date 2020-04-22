@@ -21,7 +21,7 @@ object ModulesConfig {
 
     private val taskModule = module {
         single { TaskController(get()) }
-        single { TaskService(get()) }
+        single { TaskService(get(), get()) }
         single { TaskRepository(get()) }
     }
 

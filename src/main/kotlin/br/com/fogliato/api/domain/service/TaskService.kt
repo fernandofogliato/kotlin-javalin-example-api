@@ -13,12 +13,13 @@ class TaskService(private val taskRepository: TaskRepository,
                   private val userService: UserService) {
 
     fun create(userEmail: String, task: Task): Task? {
-        try {
-            val user = userService.findByEmail(userEmail) ?: throw BadRequestResponse("Invalid user!")
+        val user = userService.findByEmail(userEmail) ?: throw BadRequestResponse("Invalid user!")
+        task.assignee?.id?.let { userService.findById(it) ?: throw BadRequestResponse("Invalid assignee!") }
 
-            task.assignee?.id?.let { userService.findById(it) } ?: throw BadRequestResponse("Invalid assignee!")
+        try {
             return taskRepository.create(task.copy(createdBy = user))
         } catch (e: Exception) {
+            println(e.message)
             throw InternalServerErrorResponse("Error to create a task.")
         }
     }

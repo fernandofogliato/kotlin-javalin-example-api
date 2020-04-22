@@ -8,6 +8,7 @@ import br.com.fogliato.api.domain.model.user.User
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -27,7 +28,8 @@ private object Tasks: Table() {
 
     override val primaryKey = PrimaryKey(id)
 
-    fun toDomain(row: ResultRow): Task {
+    fun toDomain(row: ResultRow, assignee: User?, createdBy: User?): Task {
+        println(row)
         return Task(
                 id = row[id],
                 title = row[title],
@@ -35,8 +37,8 @@ private object Tasks: Table() {
                 type = row[type],
                 area = row[area],
                 status = row[status],
-                //assignee = row[assignee],
-                //createdBy =  row[createdBy],
+                assignee = assignee,
+                createdBy = createdBy,
                 createdAt = row[createdAt],
                 updatedAt = row[updatedAt]
         )
@@ -63,24 +65,7 @@ class TaskRepository(private val dataSource: DataSource) {
                 it[createdAt] = LocalDateTime.now()
             } get Tasks.id
         }
-        return findById(id);
-    }
-
-    fun findById(id: Long): Task? {
-        return transaction(Database.connect(dataSource)) {
-            val select = Tasks.select { Tasks.id eq id }
-            select.map { row -> Tasks.toDomain(row) }.firstOrNull()
-        }
-    }
-
-    fun findAll(limit: Int, offset: Long): List<Task> {
-        return transaction(Database.connect(dataSource)) {
-            (Tasks innerJoin Users)
-                    .selectAll()
-                    .limit(limit, offset)
-                    .orderBy(Tasks.createdAt, SortOrder.DESC)
-                    .map { row -> Tasks.toDomain(row) }
-        }
+        return findById(id)
     }
 
     fun update(id: Long, task: Task): Task? {
@@ -105,20 +90,36 @@ class TaskRepository(private val dataSource: DataSource) {
     }
 
     private fun findWithConditional(where: Op<Boolean>, limit: Int, offset: Long): List<Task> {
+        val assigneeJoin = Users.alias("ass")
+        val createdByJoin = Users.alias("cr")
+
         return transaction(Database.connect(dataSource)) {
-            (Tasks innerJoin Users)
+            (Tasks.join(assigneeJoin, JoinType.LEFT, additionalConstraint = { assigneeJoin[Users.id] eq Tasks.assignee })
+                  .join(createdByJoin, JoinType.INNER, additionalConstraint = { createdByJoin[Users.id] eq Tasks.createdBy }))
                 .select(where)
                 .limit(limit, offset)
                 .orderBy(Tasks.createdAt, SortOrder.DESC)
-                .map { row -> Tasks.toDomain(row) }
+                .map { row ->
+                    val assignee = row[Tasks.assignee]?.let { Users.select { Users.id eq it }.map { r -> Users.toDomain(r) }.firstOrNull() }
+                    val createdBy = row[Tasks.createdBy]?.let { Users.select { Users.id eq it }.map { r -> Users.toDomain(r) }.firstOrNull() }
+
+                    Tasks.toDomain(row, assignee, createdBy) }
         }
     }
 
     fun findAllByArea(limit: Int, offset: Long, area: Area): List<Task> {
-        return findWithConditional((Tasks.area eq area), limit, offset);
+        return findWithConditional((Tasks.area eq area), limit, offset)
     }
 
     fun findAllByAreaAndStatus(limit: Int, offset: Long, area: Area, status: Status): List<Task> {
-        return findWithConditional((Tasks.area eq area) and (Tasks.status eq status), limit, offset);
+        return findWithConditional((Tasks.area eq area) and (Tasks.status eq status), limit, offset)
+    }
+
+    fun findById(id: Long): Task? {
+        return findWithConditional((Tasks.id eq id), 1, 0).firstOrNull()
+    }
+
+    fun findAll(limit: Int, offset: Long): List<Task> {
+        return findWithConditional((Tasks.id greater 0L), limit, offset)
     }
 }

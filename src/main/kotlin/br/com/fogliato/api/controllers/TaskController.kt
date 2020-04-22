@@ -26,8 +26,8 @@ class TaskController(private val taskService: TaskService) {
                 .check({ it.task?.id == null }, "the id must be null")
                 .check({ !it.task?.title.isNullOrBlank() }, "title is required")
                 .get().task?.also { task ->
-                    taskService.create(task).apply {
-                        print(this)
+                    val user = ctx.attribute("email") ?: ""
+                    taskService.create(user, task).apply {
                         ctx.status(HttpStatus.CREATED_201)
                         ctx.json(TaskDTO(this))
                     }

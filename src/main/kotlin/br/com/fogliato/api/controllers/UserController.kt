@@ -13,15 +13,6 @@ import org.eclipse.jetty.http.HttpStatus
 
 class UserController(private val userService: UserService) {
     
-    fun findById(ctx: Context) {
-        ctx.pathParam<Long>("id")
-            .get().also { id ->
-                userService.findById(id).apply {
-                    ctx.json(UserDTO(this))
-                }
-            }
-    }
-
     fun create(ctx: Context) {
         ctx.bodyValidator<UserDTO>()
                 .check({ it.user?.id == null }, "the id must be null")
@@ -36,17 +27,6 @@ class UserController(private val userService: UserService) {
                         ctx.json(UserDTO(this))
                     }
                 }
-    }
-
-    fun update(ctx: Context) {
-        val id = ctx.pathParam<Long>("id").get()
-
-        ctx.bodyValidator<UserDTO>()
-            .get().user?.also { user ->
-                userService.update(id, user).apply {
-                    ctx.status(HttpStatus.NO_CONTENT_204)
-                }
-            }
     }
 
     fun get(ctx: Context) {
@@ -78,5 +58,34 @@ class UserController(private val userService: UserService) {
                 .also { users -> ctx.json(UsersDTO(users, users.size)) }
     }
 
+    fun authenticate(ctx: Context) {
+        ctx.bodyValidator<UserDTO>()
+                .get().user?.also { user ->
+                    userService.authenticate(user).apply {
+                        ctx.json(this)
+                    }
+                }
+    }
 
+    fun updatePassword(ctx: Context) {
+        ctx.bodyValidator<UserDTO>()
+                .get().user?.also { user ->
+                    val emailToken = ctx.attribute("email") ?: ""
+                    userService.update(emailToken, user).apply {
+                        ctx.status(HttpStatus.NO_CONTENT_204)
+                    }
+                }
+    }
+
+    fun updateOtherUser(ctx: Context) {
+        val id = ctx.pathParam<Long>("id").get()
+
+        ctx.bodyValidator<UserDTO>()
+                .get().user?.also { user ->
+                    val emailToken = ctx.attribute("email") ?: ""
+                    userService.updateOtherUser(emailToken, id, user).apply {
+                        ctx.status(HttpStatus.NO_CONTENT_204)
+                    }
+                }
+    }
 }

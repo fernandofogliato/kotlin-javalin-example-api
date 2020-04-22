@@ -43,11 +43,11 @@ class UserRepository(private val dataSource: DataSource) {
     fun create(user: User): User? {
         val id = transaction {
             Users.insert {
-                it[name] = user.name
-                it[email] = user.email
-                it[password] = user.password
-                it[profile] = user.profile
-                it[group] = user.group
+                it[name] = user.name!!
+                it[email] = user.email!!
+                it[password] = user.password!!
+                it[profile] = user.profile!!
+                it[group] = user.group!!
                 it[active] = true
             } get Users.id
         }
@@ -72,12 +72,12 @@ class UserRepository(private val dataSource: DataSource) {
     fun update(id: Long, user: User): User? {
         return transaction(Database.connect(dataSource)) {
             Users.update({ Users.id eq id }) {
-                it[name] = user.name
-                it[email] = user.email
-                it[password] = user.password
-                it[profile] = user.profile
-                it[group] = user.group
-                it[active] = user.active
+                it[name] = user.name!!
+                it[email] = user.email!!
+                it[password] = user.password!!
+                it[profile] = user.profile!!
+                it[group] = user.group!!
+                it[active] = user.active!!
             }
         }.let {
             findById(id)
